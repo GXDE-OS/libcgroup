@@ -1,0 +1,5 @@
+version=4
+
+# We have to un-break some upstream version numbers, and transfrom .rc to ~rc
+opts="uversionmangle=s/v(\d\.\d+)/$1/;s/\.rc/~rc/,pgpsigurlmangle=s/$/.asc/" \
+  https://github.com/libcgroup/libcgroup/releases .*/libcgroup-(\d\S+)\.tar\.gz

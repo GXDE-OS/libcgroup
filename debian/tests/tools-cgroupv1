@@ -1,0 +1,30 @@
+#!/bin/sh
+
+# Author: Santiago Ruano Rincón <santiago@debian.org>
+# 2021-03-18
+# License: GPLv3
+
+# Test some of the tools included in cgroup-tools on cgroupv1 support
+
+set -e
+
+if [ ! -d /sys/fs/cgroup/memory ]; then
+  if [ ! "$AUTOPKGTEST_REBOOT_MARK" = "cgroupv1-prepare" ]; then
+    sed -i '/GRUB_CMDLINE_LINUX_DEFAULT/ s/GRUB_CMDLINE_LINUX_DEFAULT="\(.*\)"/GRUB_CMDLINE_LINUX_DEFAULT="\1 systemd.unified_cgroup_hierarchy=false systemd.legacy_systemd_cgroup_controller=false cgroup_enable=cpu cgroup_enable=cpuset cgroup_enable=memory swapaccount=1"/' /etc/default/grub
+    update-grub 2>&1
+    /tmp/autopkgtest-reboot cgroupv1-prepare
+  fi
+fi
+
+cat /proc/mounts | grep cgroup
+
+echo "test cgcreate"
+cgcreate -g cpuset:test
+echo "test lscgroup"
+lscgroup | grep test
+echo "test cgset"
+cgset -r cpuset.cpus=0 test
+echo "test cgget"
+cgget -g cpuset:test
+#echo "test cgcreate"
+#cgexec -g cpuset:test ls -l

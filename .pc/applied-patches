@@ -1,0 +1,7 @@
+cgroup-directory.patch
+initscript-exit.patch
+template-doc.patch
+initscript-return.patch
+Syntax-fixes-for-man-pages.patch
+pam_cgroup-Revert-broken-cache-usage.patch
+cgrulesengd-_GNU_SOURCE.patch

@@ -1,0 +1,59 @@
+From: James Clarke <jrtc27@debian.org>
+Date: Tue, 9 Jan 2018 13:23:26 +0000
+Subject: libcgroup: FTBFS on ia64
+
+Currently libcgroup FTBFS on ia64. This is a result of cgrulesengd.h
+defining __USE_GNU itself after features.h has been included, and since
+_GNU_SOURCE was not defined before features.h was included, this breaks
+assumptions in the glibc headers about the implications of the different
+__USE_FOO macros, eventually leading to siginfo-consts-arch.h being
+included but TRAP_TRACE not having been defined (which is guarded by
+__USE_XOPEN_EXTENDED). The attached patch fixes this on ia64, although
+is untested elsewhere.
+
+Bug-Debian: https://bugs.debian.org/886744
+Last-Update: 2022-05-11
+
+Index: libcgroup/src/daemon/cgrulesengd.c
+===================================================================
+--- libcgroup.orig/src/daemon/cgrulesengd.c
++++ libcgroup/src/daemon/cgrulesengd.c
+@@ -31,6 +31,10 @@
+  * TODO Stop using netlink for communication (or at least rewrite that part).
+  */
+ 
++#ifndef _GNU_SOURCE
++#define _GNU_SOURCE
++#endif
++
+ #include "libcgroup.h"
+ #include "cgrulesengd.h"
+ #include "../libcgroup-internal.h"
+Index: libcgroup/src/daemon/cgrulesengd.h
+===================================================================
+--- libcgroup.orig/src/daemon/cgrulesengd.h
++++ libcgroup/src/daemon/cgrulesengd.h
+@@ -15,8 +15,6 @@
+ #ifndef _CGRULESENGD_H
+ #define _CGRULESENGD_H
+ 
+-#include <features.h>
+-
+ #ifdef __cplusplus
+ extern "C" {
+ #endif
+@@ -26,14 +24,6 @@ extern "C" {
+ #include <linux/connector.h>
+ #include <linux/cn_proc.h>
+ 
+-#ifndef _GNU_SOURCE
+-#define _GNU_SOURCE
+-#endif
+-
+-#ifndef __USE_GNU
+-#define __USE_GNU
+-#endif
+-
+ /* The following ten macros are all for the Netlink code. */
+ #define SEND_MESSAGE_LEN (NLMSG_LENGTH(sizeof(struct cn_msg) + \
+ 	sizeof(enum proc_cn_mcast_op)))

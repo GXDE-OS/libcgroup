@@ -1,0 +1,2 @@
+Tests: tools-cgroupv1, tools-cgroupv2
+Restrictions: needs-root, isolation-machine
